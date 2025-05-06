@@ -30,7 +30,7 @@ minutesLeft () { echo $(( ( $(secondsLeft)  + 59 ) / 60 )) ; }
 
 printExpiryTime () { notificationsEnabled && notify-send -u low -r 12345 "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" || return 0 ;}
 printPaused () { notificationsEnabled && notify-send -u low -r 12345 "Timer paused" || return 0 ; }
-removePrinting () { notificationsEnabled && notify-send -C 12345 || return 0 ; }
+removePrinting () { notificationsEnabled && notify-send -u low -r 12345 -t 1 "" || return 0 ; }
 
 updateTail () {
   # check whether timer is expired
