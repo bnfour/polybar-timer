@@ -10,7 +10,7 @@ notificationsEnabled () { return 123; }
 
 #endregion
 
-## FUNCTIONS
+#region functions
 
 now () { date --utc +%s; }
 
@@ -81,7 +81,9 @@ COMMAND:
 EOF
 }
 
-## MAIN CODE
+#endregion
+
+#region main code
 
 case $1 in
   tail)
@@ -90,10 +92,10 @@ case $1 in
     trap updateTail USR1
 
     while true
-     do
-     updateTail
-     sleep ${3} &
-     wait
+      do
+      updateTail
+      sleep ${3} &
+      wait
     done
     ;;
   update)
@@ -151,3 +153,5 @@ case $1 in
     echo "Please read the manual at https://github.com/jbirnick/polybar-timer ."
     ;;
 esac
+
+#endregion
