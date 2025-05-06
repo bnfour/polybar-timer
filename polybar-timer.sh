@@ -16,7 +16,7 @@ now () { date --utc +%s; }
 
 # used in tail command
 setVariablesFromOwnPid () {
-  path="$path-$$"
+  path="/tmp/polybar-timer-$$"
   notificationId=$(( 12345 + $$ ))
 }
 
