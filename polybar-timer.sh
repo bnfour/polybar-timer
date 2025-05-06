@@ -3,6 +3,13 @@
 ### AUTHOR:         Johann Birnick (github: jbirnick)
 ### PROJECT REPO:   https://github.com/jbirnick/polybar-timer
 
+#region "settings"
+
+# return 0 to enable upstream "timer expires at" and "timer paused" notifications
+notificationsEnabled () { return 123; }
+
+#endregion
+
 ## FUNCTIONS
 
 now () { date --utc +%s; }
@@ -21,9 +28,9 @@ minutesLeftWhenPaused () { echo $(( ( $(secondsLeftWhenPaused)  + 59 ) / 60 )) ;
 secondsLeft () { echo $(( $(timerExpiry) - $(now) )) ; }
 minutesLeft () { echo $(( ( $(secondsLeft)  + 59 ) / 60 )) ; }
 
-printExpiryTime () { notify-send -u low -r 12345 "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" ;}
-printPaused () { notify-send -u low -r 12345 "Timer paused" ; }
-removePrinting () { notify-send -C 12345 ; }
+printExpiryTime () { notificationsEnabled && notify-send -u low -r 12345 "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" || return 0 ;}
+printPaused () { notificationsEnabled && notify-send -u low -r 12345 "Timer paused" || return 0 ; }
+removePrinting () { notificationsEnabled && notify-send -C 12345 || return 0 ; }
 
 updateTail () {
   # check whether timer is expired
