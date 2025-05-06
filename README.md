@@ -1,12 +1,14 @@
 # polybar-timer
 
-This script implements a **simple** and **customizable** timer for your bar. This fork (ab)uses polybar's `%pid%` to allow multiple timers running independently (I don't often need multiple timers running, but when I do...), among other changes.
+This script implements a **simple** and **customizable** timer for your bar.
+
+This fork (ab)uses polybar's `%pid%` to allow multiple timers running independently (I don't often need multiple timers running, but when I do...), among other changes.
 
 - specify a command to execute when the timer expires (e.g. notify-send, shell script, ...)
 - interactive:
   * e.g. scroll to increase / decrease timer
   * click to start predefined timers
-  * while changing a timer a notification displays when the timer will expire
+  * while changing a timer a notification displays when the timer will expire (optional, disabled by default in this fork)
   * pause timer
 - different icons for different kind of timers
 
@@ -60,6 +62,9 @@ click-right = /path/to/polybar-timer.sh togglepause %pid% ; /path/to/polybar-tim
 scroll-up = /path/to/polybar-timer.sh increase 60 %pid% || /path/to/polybar-timer.sh new 1 'TIMER' 'PAUSED' 'notify-send -u critical "Timer expired."' %pid% ; /path/to/polybar-timer.sh update %pid%
 scroll-down = /path/to/polybar-timer.sh increase -60 %pid% ; /path/to/polybar-timer.sh update %pid%
 ```
+
+> [!NOTE]  
+> This fork was created to support multiple independent timers. Just use the module name (`timer` in example config) multiple times in `modules-{left,center,right}` in polybar's config.
 
 ## Customization
 
