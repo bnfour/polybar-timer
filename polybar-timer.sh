@@ -14,23 +14,35 @@ notificationsEnabled () { return 123; }
 
 now () { date --utc +%s; }
 
-killTimer () { rm -rf /tmp/polybar-timer ; }
-timerSet () { [ -e /tmp/polybar-timer/ ] ; }
-timerPaused () { [ -f /tmp/polybar-timer/paused ] ; }
+# used in tail command
+setVariablesFromOwnPid () {
+  path="$path-$$"
+  notificationId=$(( 12345 + $$ ))
+}
 
-timerExpiry () { cat /tmp/polybar-timer/expiry ; }
-timerLabelRunning () { cat /tmp/polybar-timer/label_running ; }
-timerLabelPaused () { cat /tmp/polybar-timer/label_paused ; }
-timerAction () { cat /tmp/polybar-timer/action ; }
+# used in the rest of commands, pid provided by polybar via %pid%
+setVariablesFromExternalPid () {
+  path="/tmp/polybar-timer-$1"
+  notificationId=$(( 12345 + $1 ))
+}
 
-secondsLeftWhenPaused () { cat /tmp/polybar-timer/paused ; }
+killTimer () { rm -rf "$path" ; }
+timerSet () { [ -e "$path/" ] ; }
+timerPaused () { [ -f "$path/paused" ] ; }
+
+timerExpiry () { cat "$path/expiry" ; }
+timerLabelRunning () { cat "$path/label_running" ; }
+timerLabelPaused () { cat "$path/label_paused" ; }
+timerAction () { cat "$path/action" ; }
+
+secondsLeftWhenPaused () { cat "$path/paused" ; }
 minutesLeftWhenPaused () { echo $(( ( $(secondsLeftWhenPaused)  + 59 ) / 60 )) ; }
 secondsLeft () { echo $(( $(timerExpiry) - $(now) )) ; }
 minutesLeft () { echo $(( ( $(secondsLeft)  + 59 ) / 60 )) ; }
 
-printExpiryTime () { notificationsEnabled && notify-send -u low -r 12345 "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" || return 0 ;}
-printPaused () { notificationsEnabled && notify-send -u low -r 12345 "Timer paused" || return 0 ; }
-removePrinting () { notificationsEnabled && notify-send -u low -r 12345 -t 1 "" || return 0 ; }
+printExpiryTime () { notificationsEnabled && notify-send -u low -r $notificationId "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" || return 0 ;}
+printPaused () { notificationsEnabled && notify-send -u low -r $notificationId "Timer paused" || return 0 ; }
+removePrinting () { notificationsEnabled && notify-send -u low -r $notificationId -t 1 "" || return 0 ; }
 
 updateTail () {
   # check whether timer is expired
@@ -87,6 +99,7 @@ EOF
 
 case $1 in
   tail)
+    setVariablesFromOwnPid
     STANDBY_LABEL=$2
 
     trap updateTail USR1
@@ -102,22 +115,24 @@ case $1 in
     kill -USR1 $(pgrep --oldest --parent ${2})
     ;;
   new)
+    setVariablesFromExternalPid ${6}
     killTimer
-    mkdir /tmp/polybar-timer
-    echo "$(( $(now) + 60*${2} ))" > /tmp/polybar-timer/expiry
-    echo "${3}" > /tmp/polybar-timer/label_running
-    echo "${4}" > /tmp/polybar-timer/label_paused
-    echo "${5}" > /tmp/polybar-timer/action
+    mkdir "$path"
+    echo "$(( $(now) + 60*${2} ))" > "$path/expiry"
+    echo "${3}" > "$path/label_running"
+    echo "${4}" > "$path/label_paused"
+    echo "${5}" > "$path/action"
     printExpiryTime
     ;;
   increase)
+    setVariablesFromExternalPid ${3}
     if timerSet
     then
       if timerPaused
       then
-        echo "$(( $(secondsLeftWhenPaused) + ${2} ))" > /tmp/polybar-timer/paused
+        echo "$(( $(secondsLeftWhenPaused) + ${2} ))" > "$path/paused"
       else
-        echo "$(( $(timerExpiry) + ${2} ))" > /tmp/polybar-timer/expiry
+        echo "$(( $(timerExpiry) + ${2} ))" > "$path/expiry"
         printExpiryTime
       fi
     else
@@ -125,20 +140,22 @@ case $1 in
     fi
     ;;
   cancel)
+    setVariablesFromExternalPid ${2}
     killTimer
     removePrinting
     ;;
   togglepause)
+    setVariablesFromExternalPid ${2}
     if timerSet
     then
       if timerPaused
       then
-        echo "$(( $(now) + $(secondsLeftWhenPaused) ))" > /tmp/polybar-timer/expiry
-        rm -f /tmp/polybar-timer/paused
+        echo "$(( $(now) + $(secondsLeftWhenPaused) ))" > "$path/expiry"
+        rm -f "$path/paused"
         printExpiryTime
       else
-        secondsLeft > /tmp/polybar-timer/paused
-        rm -f /tmp/polybar-timer/expiry
+        secondsLeft > "$path/paused"
+        rm -f "$path/expiry"
         printPaused
       fi
     else
