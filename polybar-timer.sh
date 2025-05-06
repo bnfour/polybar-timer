@@ -42,9 +42,9 @@ updateTail () {
   then
     if timerPaused
     then
-      echo "$(timerLabelPaused) $(minutesLeftWhenPaused)"
+      echo "$(timerLabelPaused)$(minutesLeftWhenPaused)"
     else
-      echo "$(timerLabelRunning) $(minutesLeft)"
+      echo "$(timerLabelRunning)$(minutesLeft)"
     fi
   else
     echo "${STANDBY_LABEL}"
