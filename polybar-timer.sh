@@ -14,16 +14,16 @@ notificationsEnabled () { return 123; }
 
 now () { date --utc +%s; }
 
-# used in tail command
-setVariablesFromOwnPid () {
-  path="/tmp/polybar-timer-$$"
-  notificationId=$(( 12345 + $$ ))
-}
+setVariables () {
+  # if no external pid provided as an argument, use this script's own one
+  if [ "$1" ]; then
+    pid=$1
+  else
+    pid=$$
+  fi
 
-# used in the rest of commands, pid provided by polybar via %pid%
-setVariablesFromExternalPid () {
-  path="/tmp/polybar-timer-$1"
-  notificationId=$(( 12345 + $1 ))
+  path="/tmp/polybar-timer-$pid"
+  notificationId=$(( 12345 + pid ))
 }
 
 killTimer () { rm -rf "$path" ; }
@@ -102,7 +102,7 @@ EOF
 
 case $1 in
   tail)
-    setVariablesFromOwnPid
+    setVariables
     STANDBY_LABEL=$2
 
     trap updateTail USR1
@@ -118,7 +118,7 @@ case $1 in
     kill -USR1 $(pgrep --oldest --parent ${2})
     ;;
   new)
-    setVariablesFromExternalPid ${6}
+    setVariables ${6}
     killTimer
     mkdir "$path"
     echo "$(( $(now) + 60*${2} ))" > "$path/expiry"
@@ -128,7 +128,7 @@ case $1 in
     printExpiryTime
     ;;
   increase)
-    setVariablesFromExternalPid ${3}
+    setVariables ${3}
     if timerSet
     then
       if timerPaused
@@ -143,12 +143,12 @@ case $1 in
     fi
     ;;
   cancel)
-    setVariablesFromExternalPid ${2}
+    setVariables ${2}
     killTimer
     removePrinting
     ;;
   togglepause)
-    setVariablesFromExternalPid ${2}
+    setVariables ${2}
     if timerSet
     then
       if timerPaused
