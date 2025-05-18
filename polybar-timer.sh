@@ -48,9 +48,9 @@ updateTail () {
   # check whether timer is expired
   if timerSet
   then
-    if { timerPaused && [ $(minutesLeftWhenPaused) -le 0 ] ; } || { ! timerPaused && [ $(minutesLeft) -le 0 ] ; }
+    if { timerPaused && [ "$(minutesLeftWhenPaused)" -le 0 ] ; } || { ! timerPaused && [ "$(minutesLeft)" -le 0 ] ; }
     then
-      eval $(timerAction) 2>/dev/null 1>/dev/null
+      eval "$(timerAction)" 2>/dev/null 1>/dev/null
       killTimer
       removePrinting
     fi
@@ -110,15 +110,15 @@ case $1 in
     while true
       do
       updateTail
-      sleep ${3} &
+      sleep "${3}" &
       wait
     done
     ;;
   update)
-    kill -USR1 $(pgrep --oldest --parent ${2})
+    kill -USR1 $(pgrep --oldest --parent "${2}")
     ;;
   new)
-    setVariables ${6}
+    setVariables "${6}"
     killTimer
     mkdir "$path"
     echo "$(( $(now) + 60*${2} ))" > "$path/expiry"
@@ -128,7 +128,7 @@ case $1 in
     printExpiryTime
     ;;
   increase)
-    setVariables ${3}
+    setVariables "${3}"
     if timerSet
     then
       if timerPaused
@@ -143,12 +143,12 @@ case $1 in
     fi
     ;;
   cancel)
-    setVariables ${2}
+    setVariables "${2}"
     killTimer
     removePrinting
     ;;
   togglepause)
-    setVariables ${2}
+    setVariables "${2}"
     if timerSet
     then
       if timerPaused
