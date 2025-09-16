@@ -1,8 +1,8 @@
 # polybar-timer
 
-This script implements a **simple** and **customizable** timer for your bar.
+This script implements a **simple** and **customizable** timers for your bar.
 
-This fork (ab)uses polybar's `%pid%` to allow multiple timers running independently (I don't often need multiple timers running, but when I do...), among other changes.
+This fork (ab)uses polybar's `%pid%` to allow multiple timers running independently at the same time (I don't often need multiple timers running, but when I do...), among other changes.
 
 - specify a command to execute when the timer expires (e.g. notify-send, shell script, ...)
 - interactive:
@@ -45,7 +45,7 @@ This script works perfectly **without any dependencies**.
 
 ## Example Configuration
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Please note that this fork requires passing `%pid%` as last argument to every command except `tail` (and `help`, of course)
 
 ```ini
@@ -63,7 +63,7 @@ scroll-up = /path/to/polybar-timer.sh increase 60 %pid% || /path/to/polybar-time
 scroll-down = /path/to/polybar-timer.sh increase -60 %pid% ; /path/to/polybar-timer.sh update %pid%
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > This fork was created to support multiple independent timers. Just use the module name (`timer` in example config) multiple times in `modules-{left,center,right}` in polybar's config.
 
 ## Customization
@@ -75,8 +75,7 @@ You can customize the different strings, numbers and actions to your own flavor 
 If you want to do some really specific stuff and add some functionality, just edit the script. It is really simple. Just take your 10 minutes to understand what it does and then customize it.
 
 ## Documentation
-Notation: `<...>` are necessary arguments. `[...=DEFAULTVALUE]` are optional arguments,
-and if you do not specify them their `DEFAULTVALUE` is used.
+Notation: `<...>` are necessary arguments.
 
 If want to understand or edit the script, I highly recommend to run a *tail process* (see below) in a terminal window without any bar.
 This way you will see what the bar sees
@@ -94,7 +93,7 @@ You can call the script with the following arguments:
   It is executed automatically inside the tail process every few seconds.
   However, you will most probably want to also trigger it manually (in addition to the regular updates) just after you have
   just executed some of the commands below. For example, if you have
-  created a timer with [`new`](#new-minutes-timer_label-action), you want to call [`update`](#update-pid) on the tail process right after. `PID` needs to be the pid of the tail process.
+  created a timer with [`new`](#new-minutes-timer_label_running-timer_label_paused-action-pid), you want to call [`update`](#update-pid) on the tail process right after. `PID` needs to be the pid of the tail process.
   (this is [provided by polybar with `%pid%`](https://github.com/polybar/polybar/wiki/Module:-script#examples))<br>
   The update routine (triggered automatically every few seconds and whenever you call [`update`](#update-pid)) does the following:
   1. If there is a timer running and its expiry time is <= now, then it executes `ACTION` and kills the timer.
@@ -108,28 +107,27 @@ to update immediately after a change, you should call [`update`](#update-pid) ri
 > [!IMPORTANT]  
 > In this fork, the following commands also require the tail process' PID to be passed.
 
-<!-- TODO i guess with pid going after action it's not optional anymore, so it shouldn't have a default value-->
-- #### `new <MINUTES> <TIMER_LABEL_RUNNING> <TIMER_LABEL_PAUSED> <ACTION=""> <PID>`
-  1. If there is a timer already running this timer gets killed.
+- #### `new <MINUTES> <TIMER_LABEL_RUNNING> <TIMER_LABEL_PAUSED> <ACTION> <PID>`
+  1. If there is a timer already running under the given pid, the timer gets killed.
   2. Creates a timer of length `MINUTES` minutes and `TIMER_LABEL_RUNNING` as its
   label and sets its action to `ACTION`. (`ACTION` will be executed once the timer expires.) If this timer gets paused at some point, the label will be replaced by `TIMER_LABEL_PAUSED`.
 
 - #### `increase <SECONDS> <PID>`
-  If there is no timer set, nothing happens and it exits with 1.
+  If there is no timer set under the given pid, nothing happens and it exits with 1.
   If there is a timer set, it is extended by `SECONDS` seconds. `SECONDS` can also be negative, in which case it shortens the timer. Then it exits
   with 0.
 
 - #### `togglepause <PID>`
-  If there is no timer set at all, it exits with 1. If there is a timer running, the timer gets paused and it exits with 0. If there is a timer set which is already paused, the timer gets resumed and it exits with 0.
+  If there is no timer set under the given pid, it exits with 1. If there is a timer running, the timer gets paused and it exits with 0. If there is a timer set which is already paused, the timer gets resumed and it exits with 0.
 
 - #### `cancel <PID>`
-  If there is a timer running, the timer gets canceled. The `ACTION` will _not_ be
+  If there is a timer running under the given pid, the timer gets canceled. The `ACTION` will _not_ be
   executed.
 
 ## Tips & Tricks
 
-Note, when there is no timer active, then [`increase`](#increase-seconds) does nothing.
-So you might want to use the following command as a replacement for [`increase`](#increase-seconds).
+Note, when there is no timer active, then [`increase`](#increase-seconds-pid) does nothing.
+So you might want to use the following command as a replacement for [`increase`](#increase-seconds-pid).
 ```
 polybar-timer.sh increase 60 %pid% || polybar-timer.sh new 1 'mytimer' 'paused' 'notify-send "Timer expired."' %pid%
 ```
