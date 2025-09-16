@@ -2,17 +2,18 @@
 
 ### AUTHOR:         Johann Birnick (github: jbirnick), changes by bnfour
 ### PROJECT REPO:   https://github.com/bnfour/polybar-timer
+### LICENSE:        MIT
 
 #region "settings"
 
-# return 0 to enable upstream "timer expires at" and "timer paused" notifications
-notificationsEnabled () { return 123; }
+# use true to enable upstream "timer expires at" and "timer paused" notifications
+notificationsEnabled () { false ; }
 
 #endregion
 
 #region functions
 
-now () { date --utc +%s; }
+now () { date --utc +%s ; }
 
 setVariables () {
   # if no external pid provided as an argument, use this script's own one
@@ -40,9 +41,9 @@ minutesLeftWhenPaused () { echo $(( ( $(secondsLeftWhenPaused)  + 59 ) / 60 )) ;
 secondsLeft () { echo $(( $(timerExpiry) - $(now) )) ; }
 minutesLeft () { echo $(( ( $(secondsLeft)  + 59 ) / 60 )) ; }
 
-printExpiryTime () { notificationsEnabled && notify-send -u low -r $notificationId "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)" || return 0 ;}
-printPaused () { notificationsEnabled && notify-send -u low -r $notificationId "Timer paused" || return 0 ; }
-removePrinting () { notificationsEnabled && notify-send -u low -r $notificationId -t 1 "" || return 0 ; }
+printExpiryTime () { if notificationsEnabled; then notify-send -u low -r $notificationId "Timer expires at $( date -d "$(secondsLeft) sec" +%H:%M)"; fi ; }
+printPaused () { if notificationsEnabled; then notify-send -u low -r $notificationId "Timer paused"; fi ; }
+removePrinting () { if notificationsEnabled; then notify-send -u low -r $notificationId -t 1 ""; fi ; }
 
 updateTail () {
   # check whether timer is expired
@@ -84,7 +85,7 @@ COMMAND:
 The following commands alter the state of a tail script, identified by its PID [pid].
 The PID is provided by polybar with %pid%.
 
-  new [m] [rLabel] [pLabel] [action] [pid]  - Create a new timer with [m] minutes. Printed as "[rLabel|pLabel] [m]".
+  new [m] [rLabel] [pLabel] [action] [pid]  - Create a new timer with [m] minutes. Printed as "[rLabel|pLabel][m]".
                                               [rLabel] is shown while the timer is running, and [pLabel] is shown while the timer is paused.
                                               The action will be executed when the timer expires.
   update [pid]                              - Update a running [tail] command.
@@ -103,7 +104,7 @@ EOF
 case $1 in
   tail)
     setVariables
-    STANDBY_LABEL=$2
+    STANDBY_LABEL=${2}
 
     trap updateTail USR1
 
@@ -170,7 +171,7 @@ case $1 in
     ;;
   *)
     echo -e "For usage type: $0 help\n"
-    echo "Please read the manual at https://github.com/bnfour/polybar-timer ."
+    echo "Please read the manual at https://github.com/bnfour/polybar-timer"
     ;;
 esac
 
