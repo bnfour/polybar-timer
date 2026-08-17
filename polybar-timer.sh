@@ -23,20 +23,20 @@ setVariables () {
     pid=$$
   fi
 
-  path="/tmp/polybar-timer-$pid"
+  timer_path="/tmp/polybar-timer-$pid"
   notificationId=$(( 12345 + pid ))
 }
 
-killTimer () { rm -rf "$path" ; }
-timerSet () { [ -e "$path/" ] ; }
-timerPaused () { [ -f "$path/paused" ] ; }
+killTimer () { rm -rf "$timer_path" ; }
+timerSet () { [ -e "$timer_path/" ] ; }
+timerPaused () { [ -f "$timer_path/paused" ] ; }
 
-timerExpiry () { cat "$path/expiry" ; }
-timerLabelRunning () { cat "$path/label_running" ; }
-timerLabelPaused () { cat "$path/label_paused" ; }
-timerAction () { cat "$path/action" ; }
+timerExpiry () { cat "$timer_path/expiry" ; }
+timerLabelRunning () { cat "$timer_path/label_running" ; }
+timerLabelPaused () { cat "$timer_path/label_paused" ; }
+timerAction () { cat "$timer_path/action" ; }
 
-secondsLeftWhenPaused () { cat "$path/paused" ; }
+secondsLeftWhenPaused () { cat "$timer_path/paused" ; }
 minutesLeftWhenPaused () { echo $(( ( $(secondsLeftWhenPaused)  + 59 ) / 60 )) ; }
 secondsLeft () { echo $(( $(timerExpiry) - $(now) )) ; }
 minutesLeft () { echo $(( ( $(secondsLeft)  + 59 ) / 60 )) ; }
@@ -121,11 +121,11 @@ case $1 in
   new)
     setVariables "${6}"
     killTimer
-    mkdir "$path"
-    echo "$(( $(now) + 60*${2} ))" > "$path/expiry"
-    echo "${3}" > "$path/label_running"
-    echo "${4}" > "$path/label_paused"
-    echo "${5}" > "$path/action"
+    mkdir "$timer_path"
+    echo "$(( $(now) + 60*${2} ))" > "$timer_path/expiry"
+    echo "${3}" > "$timer_path/label_running"
+    echo "${4}" > "$timer_path/label_paused"
+    echo "${5}" > "$timer_path/action"
     printExpiryTime
     ;;
   increase)
@@ -134,9 +134,9 @@ case $1 in
     then
       if timerPaused
       then
-        echo "$(( $(secondsLeftWhenPaused) + ${2} ))" > "$path/paused"
+        echo "$(( $(secondsLeftWhenPaused) + ${2} ))" > "$timer_path/paused"
       else
-        echo "$(( $(timerExpiry) + ${2} ))" > "$path/expiry"
+        echo "$(( $(timerExpiry) + ${2} ))" > "$timer_path/expiry"
         printExpiryTime
       fi
     else
@@ -154,12 +154,12 @@ case $1 in
     then
       if timerPaused
       then
-        echo "$(( $(now) + $(secondsLeftWhenPaused) ))" > "$path/expiry"
-        rm -f "$path/paused"
+        echo "$(( $(now) + $(secondsLeftWhenPaused) ))" > "$timer_path/expiry"
+        rm -f "$timer_path/paused"
         printExpiryTime
       else
-        secondsLeft > "$path/paused"
-        rm -f "$path/expiry"
+        secondsLeft > "$timer_path/paused"
+        rm -f "$timer_path/expiry"
         printPaused
       fi
     else
